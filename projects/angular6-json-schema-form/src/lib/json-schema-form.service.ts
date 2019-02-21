@@ -1,5 +1,6 @@
-import _ from 'lodash';
+import cloneDeep from 'lodash-es/cloneDeep';
 import Ajv from 'ajv';
+import jsonDraft6 from 'ajv/lib/refs/json-schema-draft-06.json';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import {
   buildFormGroup,
@@ -10,13 +11,14 @@ import {
 import { buildLayout, getLayoutNode } from './shared/layout.functions';
 import { buildSchemaFromData, buildSchemaFromLayout, removeRecursiveReferences } from './shared/json-schema.functions';
 import { enValidationMessages } from './locale/en-validation-messages';
+import { frValidationMessages } from './locale/fr-validation-messages';
+import { zhValidationMessages } from './locale/zh-validation-messages';
 import {
   fixTitle,
   forEach,
   hasOwn,
   toTitleCase
   } from './shared/utility.functions';
-import { frValidationMessages } from './locale/fr-validation-messages';
 import {
   hasValue,
   isArray,
@@ -127,14 +129,22 @@ export class JsonSchemaFormService {
 
   constructor() {
     this.setLanguage(this.language);
+    this.ajv.addMetaSchema(jsonDraft6);
   }
 
   setLanguage(language: string = 'en-US') {
     this.language = language;
-    const validationMessages = language.slice(0, 2) === 'fr' ?
-      frValidationMessages : enValidationMessages;
+    const languageValidationMessages = {
+        fr: frValidationMessages,
+        en: enValidationMessages,
+        zh: zhValidationMessages
+    };
+    const languageCode = language.slice(0, 2);
+
+    const validationMessages = languageValidationMessages[languageCode];
+
     this.defaultFormOptions.defautWidgetOptions.validationMessages =
-      _.cloneDeep(validationMessages);
+      cloneDeep(validationMessages);
   }
 
   getData() { return this.data; }
@@ -166,7 +176,7 @@ export class JsonSchemaFormService {
     this.layoutRefLibrary = {};
     this.schemaRefLibrary = {};
     this.templateRefLibrary = {};
-    this.formOptions = _.cloneDeep(this.defaultFormOptions);
+    this.formOptions = cloneDeep(this.defaultFormOptions);
   }
 
   /**
@@ -249,7 +259,7 @@ export class JsonSchemaFormService {
 
   setOptions(newOptions: any) {
     if (isObject(newOptions)) {
-      const addOptions = _.cloneDeep(newOptions);
+      const addOptions = cloneDeep(newOptions);
       // Backward compatibility for 'defaultOptions' (renamed 'defautWidgetOptions')
       if (isObject(addOptions.defaultOptions)) {
         Object.assign(this.formOptions.defautWidgetOptions, addOptions.defaultOptions);
@@ -432,7 +442,7 @@ export class JsonSchemaFormService {
     if (!isObject(ctx)) { return false; }
     if (isEmpty(ctx.options)) {
       ctx.options = !isEmpty((ctx.layoutNode || {}).options) ?
-        ctx.layoutNode.options : _.cloneDeep(this.formOptions);
+        ctx.layoutNode.options : cloneDeep(this.formOptions);
     }
     ctx.formControl = this.getFormControl(ctx);
     ctx.boundControl = bind && !!ctx.formControl;
@@ -449,7 +459,7 @@ export class JsonSchemaFormService {
           this.formatErrors(ctx.formControl.errors, ctx.options.validationMessages)
       );
       ctx.formControl.valueChanges.subscribe(value => {
-        if (!_.isEqual(ctx.controlValue, value)) { ctx.controlValue = value; }
+        if (!!value) { ctx.controlValue = value; }
       });
     } else {
       ctx.controlName = ctx.layoutNode.name;

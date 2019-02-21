@@ -7,6 +7,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
   selector: 'material-number-widget',
   template: `
     <mat-form-field
+      [appearance]="options?.appearance || 'standard'"
       [class]="options?.htmlClass || ''"
       [floatLabel]="options?.floatLabel || (options?.notitle ? 'never' : 'auto')"
       [style.width]="'100%'">
@@ -53,7 +54,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
       [innerHTML]="options?.errorMessage"></mat-error>`,
   styles: [`
     mat-error { font-size: 75%; margin-top: -1rem; margin-bottom: 0.5rem; }
-    ::ng-deep mat-form-field .mat-form-field-wrapper .mat-form-field-flex
+    ::ng-deep json-schema-form mat-form-field .mat-form-field-wrapper .mat-form-field-flex
       .mat-form-field-infix { width: initial; }
   `],
 })
